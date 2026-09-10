@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+# Canvas rosters, attendance sheets, and grades stay local.
+*.csv
