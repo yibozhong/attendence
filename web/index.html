@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab check-in</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/checkin.js" defer></script>
+</head>
+<body>
+  <main class="checkin-page">
+    <div class="eyebrow">CLASSROOM CHECK-IN</div>
+    <div class="page-heading">
+      <div>
+        <h1 id="lab">Lab check-in</h1>
+        <p class="subtitle">Find your name. Confirm your attendance.</p>
+      </div>
+      <button id="toggle" class="toggle" type="button" hidden disabled>Open check-in</button>
+    </div>
+    <p id="connection-error" class="error" role="alert"></p>
+    <div class="checkin-grid">
+      <section class="card">
+        <div id="badge" class="badge">Connecting</div>
+        <p id="status" role="status">Connecting to your classroom…</p>
+        <p id="success" class="success" role="status" aria-live="polite" hidden></p>
+        <form id="form" hidden>
+          <label for="search">Search your name</label>
+          <input id="search" type="search" placeholder="Start typing your name…" autocomplete="off">
+          <fieldset id="choices">
+            <legend>Select your name</legend>
+            <div id="roster" class="roster"></div>
+          </fieldset>
+          <p id="selection" class="hint">Select your own name before confirming.</p>
+          <button id="submit" type="submit" disabled>Check in · 10 points</button>
+        </form>
+        <p id="error" class="error" role="alert"></p>
+      </section>
+      <section class="card">
+        <div class="stats">
+          <div><strong id="unique-count">0</strong><span>Students checked in / <span id="total">0</span></span></div>
+          <div><strong id="count">0</strong><span>Submissions</span></div>
+        </div>
+        <h2>Check-in history</h2>
+        <p class="hint">Latest check-ins appear first. This list updates automatically.</p>
+        <ul id="submissions" class="submissions"><li>No check-ins yet.</li></ul>
+      </section>
+    </div>
+    <p class="footer">Each check-in saves 10 points. After confirming, leave this page ready for the next student.</p>
+  </main>
+</body>
+</html>

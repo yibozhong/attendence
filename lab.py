@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 
-DEFAULT_SOURCE = "2026-09-10T1827_Grades-FA26_COMPSCI_220_001.csv"
+DEFAULT_SOURCE = "2026-09-11T0945_Grades-FA26_COMPSCI_220_001.csv"
 
 
 def name_keys(names):
@@ -19,17 +19,19 @@ def validate_names(keys, label):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create a lab attendance CSV or merge it into a Canvas export.")
-    parser.add_argument("action", choices=["init", "merge"], nargs="?", default="init")
+    parser = argparse.ArgumentParser(description="Create a lab attendance CSV, run web check-in, or merge scores into a Canvas export.")
+    parser.add_argument("action", choices=["init", "merge", "serve"], nargs="?", default="init")
     parser.add_argument("--lab", default="Lab-P2", help="Lab title, e.g. Lab-P3, or its full Canvas column name")
     parser.add_argument("--source", type=Path, default=Path(DEFAULT_SOURCE))
     parser.add_argument("--scores", type=Path, help="Two-column attendance CSV")
     parser.add_argument("--output", type=Path, help="Merged Canvas CSV (merge only)")
+    parser.add_argument("--host", default="127.0.0.1", help="Listen address for serve (default: this computer only)")
+    parser.add_argument("--port", type=int, default=8000, help="Listen port for serve")
     args = parser.parse_args()
 
     try:
-        if args.action == "init" and args.output is not None:
-            raise ValueError("Use --scores to choose the init output file")
+        if args.action != "merge" and args.output is not None:
+            raise ValueError("--output is for merge only; use --scores for the attendance file")
 
         # Read as text so IDs, blanks, and unrelated grades survive unchanged.
         source = pd.read_csv(args.source, dtype="string", keep_default_na=False)
@@ -51,6 +53,24 @@ def main():
             raise ValueError("Source contains duplicate student IDs")
         keys = name_keys(students["Student"])
         validate_names(keys, "Source")
+
+        if args.action == "serve":
+            from attendance_web import serve
+
+            points_rows = source.loc[
+                ~student_mask & source["Student"].str.strip().eq("Points Possible"), lab_column
+            ]
+            if len(points_rows) != 1 or not 10 <= float(points_rows.iloc[0]) < float("inf"):
+                raise ValueError("Web check-in awards 10 points; Points Possible must be at least 10")
+            if scores_path.resolve() == args.source.resolve() or (
+                scores_path.exists() and scores_path.samefile(args.source)
+            ):
+                raise ValueError("Attendance CSV must not overwrite the source")
+            serve(
+                scores_path, lab_column, students["Student"].tolist(),
+                float(points_rows.iloc[0]), args.host, args.port,
+            )
+            return
 
         if args.action == "init":
             result = students[["Student"]].copy()
